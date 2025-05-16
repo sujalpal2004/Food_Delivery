@@ -1,0 +1,298 @@
+{% extends 'base/base.html' %}
+{% block title %}Login Here{% endblock title %}
+
+{% block extrahead %}
+<style>
+  /* Modern Login Form Styling */
+  :root {
+    --gradient-primary: linear-gradient(135deg, #6e8efb, #a777e3);
+    --gradient-secondary: linear-gradient(135deg, #8e2de2, #4a00e0);
+    --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+    --transition-speed: 0.3s;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--gradient-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .login-container {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    width: 100%;
+    max-width: 450px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  .login-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: var(--gradient-secondary);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .login-header h1 {
+    color: #333;
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 10px;
+    position: relative;
+    display: inline-block;
+  }
+
+  .login-header h1::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: var(--gradient-secondary);
+    border-radius: 3px;
+  }
+
+  .alert {
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    animation: slideDown 0.5s ease-out;
+  }
+
+  .alert-error {
+    background-color: #ffe6e6;
+    border-left: 4px solid #ff5252;
+    color: #c41e3a;
+  }
+
+  .alert-success {
+    background-color: #e6ffe6;
+    border-left: 4px solid #52ff52;
+    color: #1ec43c;
+  }
+
+  .alert-info {
+    background-color: #e6f2ff;
+    border-left: 4px solid #5291ff;
+    color: #1e56c4;
+  }
+
+  .alert-warning {
+    background-color: #fffde6;
+    border-left: 4px solid #ffee52;
+    color: #c4b01e;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  form p {
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+    transform: translateY(0);
+    transition: all var(--transition-speed);
+  }
+
+  form input[type="text"],
+  form input[type="password"],
+  form input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    transition: all var(--transition-speed);
+    box-sizing: border-box;
+  }
+
+  form input[type="text"]:focus,
+  form input[type="password"]:focus,
+  form input[type="email"]:focus {
+    border-color: #a777e3;
+    box-shadow: 0 0 0 3px rgba(167, 119, 227, 0.2);
+    outline: none;
+  }
+
+  form input[type="submit"] {
+    background: var(--gradient-secondary);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    box-shadow: 0 4px 10px rgba(138, 43, 226, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  form input[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(138, 43, 226, 0.4);
+  }
+
+  form input[type="submit"]:active {
+    transform: translateY(0);
+  }
+
+  form input[type="submit"]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+
+  form input[type="submit"]:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+  }
+
+  .helptext {
+    display: block;
+    font-size: 13px;
+    color: #777;
+    margin-top: 5px;
+  }
+
+  .errorlist {
+    color: #e74c3c;
+    font-size: 14px;
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 1;
+    }
+    20% {
+      transform: scale(25, 25);
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(40, 40);
+    }
+  }
+
+  /* Input field animations */
+  form p:nth-child(1) {
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+  }
+
+  form p:nth-child(2) {
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+  }
+
+  form p:nth-child(3) {
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+  }
+
+  form input[type="submit"] {
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.4s;
+    opacity: 0;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 480px) {
+    .login-container {
+      padding: 30px 20px;
+    }
+    
+    .login-header h1 {
+      font-size: 24px;
+    }
+  }
+</style>
+{% endblock extrahead %}
+
+{% block maincontent %}
+<div class="login-container">
+  <div class="login-header">
+    <h1>Welcome Back</h1>
+    <p>Please enter your credentials to login</p>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{message.tags}}" role="alert">
+        {{message}}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form action="" method="post">
+    {% csrf_token %}
+    {{form.as_p}}
+    <input type="submit" value="Login">
+  </form>
+</div>
+{% endblock maincontent %}

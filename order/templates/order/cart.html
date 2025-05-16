@@ -1,0 +1,550 @@
+{% extends 'base/base.html' %}
+{% block title %}Your Cart | FoodieExpress{% endblock title %}
+
+{% block maincontent %}
+<div class="container py-5">
+    <h1 class="text-center mb-5 fw-bold position-relative cart-title">
+        <span class="position-relative">Your Shopping Cart
+            <div class="title-underline"></div>
+        </span>
+    </h1>
+
+    {% if cartitems %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="cart-items-container">
+                {% for item in cartitems %}
+                <div class="cart-item mb-4 animate-card" style="--delay: {{ forloop.counter0 }}">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden hover-scale">
+                        <div class="row g-0">
+                            <div class="col-md-4 cart-img-container">
+                                <img src="{{item.food.image.url}}" class="img-fluid cart-img" alt="{{item.food.name}}">
+                                <div class="cart-img-overlay"></div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h4 class="card-title fw-bold mb-1">{{item.food.name | title}}</h4>
+                                            <p class="card-text text-muted">{{item.food.description | title}}</p>
+                                        </div>
+                                        <a class="btn btn-danger-soft delete-btn" href="{% url 'update-cart' item.food.id %}?name=delete_cart_item">
+                                            <i class="fa-solid fa-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="row mt-4 g-3">
+                                        <div class="col-md-4">
+                                            <div class="price-box">
+                                                <div class="price-label">Price</div>
+                                                <div class="price-value">₹{{item.food.price}}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="quantity-box">
+                                                <div class="price-label">Quantity</div>
+                                                <div class="quantity-controls">
+                                                    {% if item.quantity == 1 %}
+                                                    <a class="quantity-btn minus" href="{% url 'update-cart' item.food.id %}?name=delete_cart_item">
+                                                        <i class="fa-solid fa-trash-alt"></i>
+                                                    </a>
+                                                    {% else %}
+                                                    <a class="quantity-btn minus" href="{% url 'update-cart' item.food.id %}?name=decrease_cart">
+                                                        <i class="fa-solid fa-minus"></i>
+                                                    </a>
+                                                    {% endif %}
+                                                    
+                                                    <span class="quantity-value">{{item.quantity}}</span>
+                                                    
+                                                    <a class="quantity-btn plus" href="{% url 'update-cart' item.food.id %}?name=increase_cart">
+                                                        <i class="fa-solid fa-plus"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="amount-box">
+                                                <div class="price-label">Amount</div>
+                                                <div class="amount-value">₹{% widthratio item.food.price 1 item.quantity %}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="order-summary animate-fade-in">
+                <div class="card border-0 shadow rounded-4 sticky-top" style="top: 100px; z-index: 10;">
+                    <div class="card-header bg-gradient-primary text-white py-3 border-0">
+                        <h4 class="mb-0 fw-bold">Order Summary</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-group summary-list">
+                            {% for item in cartitems %}
+                            <li class="summary-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="item-name">{{item.food.name | title}}</span>
+                                        <span class="item-quantity text-muted">x{{item.quantity}}</span>
+                                    </div>
+                                    <span class="item-price">₹{% widthratio item.food.price 1 item.quantity %}</span>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div class="divider my-4"></div>
+                        
+                        <div class="d-flex justify-content-between align-items-center total-row">
+                            <span class="total-label">Total Amount</span>
+                            <span class="total-value">₹{{total_amount}}</span>
+                        </div>
+                        
+                        <div class="payment-methods mt-4">
+                            <form action="/checkout/" method="post" id="paypalform" class="mb-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="paymode" value="Online">
+                                <input type="hidden" name="paygate" value="Paypal">
+                                <div id="paypal-button-container"></div>
+                            </form>
+                            
+                            <form action="/checkout/" method="post" id="cashform">
+                                {% csrf_token %}
+                                <input type="hidden" name="paymode" value="Cash">
+                                <button type="submit" class="btn btn-cod w-100">
+                                    <i class="fas fa-money-bill-wave me-2"></i>Cash On Delivery
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert-box animate-bounce">
+                    <div class="alert alert-custom mt-4 border-0 shadow-sm">
+                        <div class="alert-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="alert-content">
+                            <h5 class="alert-title mb-1">Collection Note</h5>
+                            <p class="alert-text mb-0">
+                                You can collect your order from the canteen when <strong>Status</strong> is <strong>Packed</strong> in <a href="{% url 'my-orders' %}" class="alert-link">My Orders</a> page.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="os"></div>
+    {% else %}
+    <div class="empty-cart-container text-center py-5 animate-fade-in">
+        <div class="empty-cart-icon mb-4">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h2 class="empty-cart-title mb-3">Your Cart is Empty</h2>
+        <p class="empty-cart-text mb-4">Looks like you haven't added any items to your cart yet.</p>
+        <a href="/" class="btn btn-gradient-primary btn-lg px-4">
+            <i class="fas fa-utensils me-2"></i>Browse Menu
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Cart Page Styles */
+    .cart-title {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .title-underline {
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+        border-radius: 2px;
+    }
+    
+    /* Cart Item Styling */
+    .cart-item {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-scale {
+        transition: transform 0.3s ease;
+    }
+    
+    .hover-scale:hover {
+        transform: translateY(-5px);
+    }
+    
+    .cart-img-container {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cart-img {
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .cart-img-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255, 122, 0, 0.3), rgba(255, 0, 128, 0.3));
+    }
+    
+    .card:hover .cart-img {
+        transform: scale(1.1);
+    }
+    
+    /* Price, Quantity, Amount Boxes */
+    .price-box, .quantity-box, .amount-box {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .price-box:hover, .amount-box:hover {
+        background: linear-gradient(135deg, #fff6e9, #fff0f7);
+        transform: translateY(-3px);
+    }
+    
+    .price-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    
+    .price-value, .amount-value {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #FF7A00;
+    }
+    
+    /* Quantity Controls */
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quantity-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .quantity-btn.minus {
+        background: linear-gradient(135deg, #ff9966, #ff5e62);
+        color: white;
+    }
+    
+    .quantity-btn.plus {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+    }
+    
+    .quantity-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .quantity-value {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin: 0 10px;
+    }
+    
+    /* Delete Button */
+    .btn-danger-soft {
+        background: rgba(255, 92, 92, 0.1);
+        color: #ff5c5c;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-danger-soft:hover {
+        background: #ff5c5c;
+        color: white;
+        transform: rotate(15deg);
+    }
+    
+    /* Order Summary */
+    .order-summary {
+        position: relative;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #FF7A00, #FF0080);
+    }
+    
+    .summary-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .summary-item {
+        padding: 12px 0;
+        border-bottom: 1px dashed rgba(0,0,0,0.1);
+    }
+    
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+    
+    .item-name {
+        font-weight: 500;
+        display: block;
+    }
+    
+    .item-quantity {
+        font-size: 0.85rem;
+    }
+    
+    .item-price {
+        font-weight: 600;
+    }
+    
+    .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+    }
+    
+    .total-row {
+        padding: 10px 0;
+    }
+    
+    .total-label {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .total-value {
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: #FF7A00;
+    }
+    
+    /* Payment Buttons */
+    .btn-cod {
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-cod:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 7px 15px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    
+    /* Alert Box */
+    .alert-custom {
+        background: linear-gradient(135deg, #fff9c4, #ffecb3);
+        border-radius: 15px;
+        padding: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .alert-icon {
+        font-size: 1.5rem;
+        color: #FF7A00;
+        flex-shrink: 0;
+    }
+    
+    .alert-title {
+        font-weight: 700;
+        color: #333;
+    }
+    
+    .alert-text {
+        color: #555;
+    }
+    
+    .alert-link {
+        color: #FF0080;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .alert-link:hover {
+        color: #FF7A00;
+        text-decoration: underline;
+    }
+    
+    /* Empty Cart */
+    .empty-cart-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .empty-cart-icon {
+        font-size: 5rem;
+        color: #d1d1d1;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    .empty-cart-title {
+        font-weight: 700;
+        color: #333;
+    }
+    
+    .empty-cart-text {
+        color: #777;
+        font-size: 1.1rem;
+    }
+    
+    .btn-gradient-primary {
+        background: linear-gradient(135deg, #FF7A00, #FF0080);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-gradient-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 7px 15px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .animate-card {
+        animation: fadeInUp 0.5s ease-out forwards;
+        animation-delay: calc(var(--delay) * 0.1s);
+        opacity: 0;
+    }
+    
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    .animate-bounce {
+        animation: bounce 3s ease-in-out infinite;
+    }
+</style>
+{% endblock maincontent %}
+
+{% block payment-gateway %}
+<script src="https://www.paypal.com/sdk/js?client-id=AdstVdkXtBT7eFeAKT1PuFTYmnm3a9HgAeyqXiJtxNKFQJav05K7ljkgv6e1EbefJo_crAAgYXsElPcf&currency=USD"></script>
+
+<script>
+    // Render the PayPal button into #paypal-button-container
+    paypal.Buttons({
+        // Set up the transaction
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: '{{total_amount}}'
+                    }
+                }]
+            });
+        },
+
+        // Finalize the transaction
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(orderData) {
+                var transaction = orderData.purchase_units[0].payments.captures[0];
+                
+                // Show success message with a nicer alert
+                Swal.fire({
+                    title: 'Payment Successful!',
+                    text: 'Transaction ' + transaction.status + ': ' + transaction.id,
+                    icon: 'success',
+                    confirmButtonText: 'Continue'
+                }).then((result) => {
+                    // Submit the form after user clicks OK
+                    form = document.getElementById('paypalform')
+                    hidnInp = document.createElement("input")
+                    hidnInp.setAttribute('type', 'hidden')
+                    hidnInp.setAttribute('name', 'tn_id')
+                    hidnInp.setAttribute('value', transaction.id)
+                    form.appendChild(hidnInp)
+                    document.getElementById('paypalform').submit()
+                });
+            });
+        }
+    }).render('#paypal-button-container');
+    
+    // Add SweetAlert2 for better alerts
+    document.head.innerHTML += '<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">';
+    var sweetalertScript = document.createElement('script');
+    sweetalertScript.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js';
+    document.body.appendChild(sweetalertScript);
+</script>
+{% endblock payment-gateway %}

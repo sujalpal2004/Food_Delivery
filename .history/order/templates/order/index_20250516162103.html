@@ -1,0 +1,415 @@
+{% extends 'base/base.html' %}
+{% block title %}Order Food From Your College Canteen{% endblock title %}
+
+{% block maincontent %}
+<div class="menu-container">
+    <div class="section-title-container">
+        <h1 class="section-title">Our Delicious Menu</h1>
+        <div class="section-title-underline"></div>
+    </div>
+    
+    <div class="food-grid">
+        {% for f in food %}
+        <div class="food-card-wrapper" style="--delay: {{ forloop.counter0 }}">
+            <div class="food-card">
+                <div class="food-card-image-container">
+                    <img src="{{f.image.url}}" class="food-card-image" alt="{{f.name}}">
+                    <div class="food-card-overlay"></div>
+                    <div class="food-card-badge">Popular</div>
+                </div>
+                <div class="food-card-content">
+                    <h3 class="food-card-title">{{f.name | title}}</h3>
+                    <div class="food-card-price">
+                        <span class="price-tag">₹{{f.price}}</span>
+                    </div>
+                    <div class="food-card-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-count">(4.5)</span>
+                    </div>
+                    <p class="food-card-description">{{f.description | title}}</p>
+                    
+                    <div class="food-card-actions">
+                        {% for item in cartitems %}
+                            {% if f.name == item.0 and item.1 != '0' %}
+                                <div class="quantity-control">
+                                    {% if item.1 == 1 %}
+                                        <a class="quantity-btn remove" href="{% url 'update-cart' f.id %}?name=delete_cart_item">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    {% else %}
+                                        <a class="quantity-btn decrease" href="{% url 'update-cart' f.id %}?name=decrease_cart">
+                                            <i class="fa-solid fa-minus"></i>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <span class="quantity-value">{{item.1}}</span>
+                                    
+                                    <a class="quantity-btn increase" href="{% url 'update-cart' f.id %}?name=increase_cart">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </a>
+                                    
+                                    <a class="quantity-btn delete" href="{% url 'update-cart' f.id %}?name=delete_cart_item">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
+                            {% endif %}
+                            {% if f.name == item.0 and item.1 == '0' %}
+                                <a href="{% url 'update-cart' f.id %}" class="add-to-cart-btn">
+                                    <span class="btn-text">Add to Cart</span>
+                                    <span class="btn-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if request.user.is_anonymous %}
+                            <a href="{% url 'update-cart' f.id %}" class="add-to-cart-btn">
+                                <span class="btn-text">Add to Cart</span>
+                                <span class="btn-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* Menu Page Styles */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #FF7A00, #FF0080);
+        --secondary-gradient: linear-gradient(135deg, #6a11cb, #2575fc);
+        --accent-color: #FFD700;
+        --text-light: #ffffff;
+        --text-dark: #333333;
+        --bg-light: #f8f9fa;
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .menu-container {
+        padding: 2rem 0;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    /* Section Title */
+    .section-title-container {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        display: inline-block;
+        position: relative;
+    }
+    
+    .section-title-underline {
+        height: 4px;
+        width: 100px;
+        background: var(--primary-gradient);
+        margin: 0 auto;
+        border-radius: 2px;
+    }
+    
+    /* Food Grid */
+    .food-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+        padding: 0 1rem;
+    }
+    
+    /* Food Card */
+    .food-card-wrapper {
+        animation: fadeInUp 0.6s ease-out forwards;
+        animation-delay: calc(var(--delay) * 0.1s);
+        opacity: 0;
+    }
+    
+    .food-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    
+    .food-card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .food-card:hover .food-card-image {
+        transform: scale(1.1);
+    }
+    
+    .food-card:hover .food-card-overlay {
+        opacity: 0.4;
+    }
+    
+    /* Card Image */
+    .food-card-image-container {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .food-card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s ease;
+    }
+    
+    .food-card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--primary-gradient);
+        opacity: 0.2;
+        transition: opacity 0.4s ease;
+    }
+    
+    .food-card-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--accent-color);
+        color: var(--text-dark);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        transform: translateY(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .food-card:hover .food-card-badge {
+        transform: translateY(-5px);
+    }
+    
+    /* Card Content */
+    .food-card-content {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    
+    .food-card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+    }
+    
+    .food-card-price {
+        margin-bottom: 0.75rem;
+    }
+    
+    .price-tag {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #FF7A00;
+    }
+    
+    .food-card-rating {
+        color: var(--accent-color);
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .rating-count {
+        color: #6c757d;
+        margin-left: 5px;
+    }
+    
+    .food-card-description {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+    
+    /* Card Actions */
+    .food-card-actions {
+        margin-top: auto;
+    }
+    
+    /* Add to Cart Button */
+    .add-to-cart-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .add-to-cart-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 7px 15px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    
+    .add-to-cart-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.7s ease;
+    }
+    
+    .add-to-cart-btn:hover::before {
+        left: 100%;
+    }
+    
+    .btn-text {
+        margin-right: 8px;
+    }
+    
+    /* Quantity Controls */
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f8f9fa;
+        border-radius: 30px;
+        padding: 0.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .quantity-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        color: white;
+    }
+    
+    .quantity-btn.decrease {
+        background: linear-gradient(135deg, #ff9966, #ff5e62);
+    }
+    
+    .quantity-btn.increase {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+    
+    .quantity-btn.remove, .quantity-btn.delete {
+        background: linear-gradient(135deg, #ff5e62, #ff2cdf);
+    }
+    
+    .quantity-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .quantity-value {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--text-dark);
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+        100% {
+            transform: translateY(0px);
+        }
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .food-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .food-grid {
+            grid-template-columns: 1fr;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+    }
+    
+    /* Add floating animation to every 3rd card */
+    .food-card-wrapper:nth-child(3n+1) .food-card {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    /* Add pulse animation to every 4th card */
+    .food-card-wrapper:nth-child(4n+2) .food-card {
+        animation: pulse 5s ease-in-out infinite;
+    }
+</style>
+{% endblock maincontent %}
